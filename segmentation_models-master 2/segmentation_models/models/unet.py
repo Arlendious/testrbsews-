@@ -124,8 +124,8 @@ def build_unet(
 
     # add center block if previous operation was maxpooling (for vgg models)
     if isinstance(backbone.layers[-1], layers.MaxPooling2D):
-        x = Conv3x3BnReLU(512, use_batchnorm, name='center_block1')(x)
-        x = Conv3x3BnReLU(512, use_batchnorm, name='center_block2')(x)
+        x = SeparableConv2dBnReLU(512, use_batchnorm, name='center_block1')(x)
+        x = SeparableConv2dBnReLU(512, use_batchnorm, name='center_block2')(x)
 
     # building decoder blocks
     for i in range(n_upsample_blocks):
@@ -138,7 +138,7 @@ def build_unet(
         x = decoder_block(decoder_filters[i], stage=i, use_batchnorm=use_batchnorm)(x, skip)
 
     # model head (define number of output classes)
-    x = layers.Conv2D(
+    x = layers.SeparableConv2D(
         filters=classes,
         kernel_size=(3, 3),
         padding='same',
@@ -152,7 +152,6 @@ def build_unet(
     model = models.Model(input_, x)
 
     return model
-
 
 # ---------------------------------------------------------------------
 #  Unet Model
@@ -179,23 +178,23 @@ def Unet(
             extractor to build segmentation model.
         input_shape: shape of input data/image ``(H, W, C)``, in general
             case you do not need to set ``H`` and ``W`` shapes, just pass ``(None, None, C)`` to make your model be
-            able to process images af any size, but ``H`` and ``W`` of input images should be divisible by factor ``32``.
+            able to process images at any size, but ``H`` and ``W`` of input images should be divisible by factor ``32``.
         classes: a number of classes for output (output shape - ``(h, w, classes)``).
-        activation: name of one of ``keras.activations`` for last model layer
+        activation: name of one of ``keras.activations`` for the last model layer
             (e.g. ``sigmoid``, ``softmax``, ``linear``).
         weights: optional, path to model weights.
         encoder_weights: one of ``None`` (random initialization), ``imagenet`` (pre-training on ImageNet).
         encoder_freeze: if ``True`` set all layers of encoder (backbone model) as non-trainable.
-        encoder_features: a list of layer numbers or names starting from top of the model.
-            Each of these layers will be concatenated with corresponding decoder block. If ``default`` is used
+        encoder_features: a list of layer numbers or names starting from the top of the model.
+            Each of these layers will be concatenated with the corresponding decoder block. If ``default`` is used
             layer names are taken from ``DEFAULT_SKIP_CONNECTIONS``.
-        decoder_block_type: one of blocks with following layers structure:
+        decoder_block_type: one of the blocks with the following layers structure:
 
-            - `upsampling`:  ``UpSampling2D`` -> ``Conv2D`` -> ``Conv2D``
-            - `transpose`:   ``Transpose2D`` -> ``Conv2D``
+            - `upsampling`:  ``UpSampling2D`` -> ``SeparableConv2D`` -> ``SeparableConv2D``
+            - `transpose`:   ``Conv2DTranspose`` -> ``SeparableConv2D``
 
-        decoder_filters: list of numbers of ``Conv2D`` layer filters in decoder blocks
-        decoder_use_batchnorm: if ``True``, ``BatchNormalisation`` layer between ``Conv2D`` and ``Activation`` layers
+        decoder_filters: list of numbers of ``SeparableConv2D`` layer filters in decoder blocks.
+        decoder_use_batchnorm: if ``True``, ``BatchNormalization`` layer between ``SeparableConv2D`` and ``Activation`` layers
             is used.
 
     Returns:
