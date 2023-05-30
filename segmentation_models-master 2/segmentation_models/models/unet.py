@@ -27,11 +27,11 @@ def get_submodules():
 #  Blocks
 # ---------------------------------------------------------------------
 
-def Conv3x3BnReLU(filters, use_batchnorm, name=None):
+def SeparableConv2dBnReLU(filters, use_batchnorm, name=None):
     kwargs = get_submodules()
 
     def wrapper(input_tensor):
-        return Conv2dBn(
+        return SeparableConv2dBn(
             filters,
             kernel_size=3,
             activation='relu',
@@ -59,8 +59,8 @@ def DecoderUpsamplingX2Block(filters, stage, use_batchnorm=False):
         if skip is not None:
             x = layers.Concatenate(axis=concat_axis, name=concat_name)([x, skip])
 
-        x = Conv3x3BnReLU(filters, use_batchnorm, name=conv1_name)(x)
-        x = Conv3x3BnReLU(filters, use_batchnorm, name=conv2_name)(x)
+        x = SeparableConv2dBnReLU(filters, use_batchnorm, name=conv1_name)(x)
+        x = SeparableConv2dBnReLU(filters, use_batchnorm, name=conv2_name)(x)
 
         return x
 
@@ -95,12 +95,11 @@ def DecoderTransposeX2Block(filters, stage, use_batchnorm=False):
         if skip is not None:
             x = layers.Concatenate(axis=concat_axis, name=concat_name)([x, skip])
 
-        x = Conv3x3BnReLU(filters, use_batchnorm, name=conv_block_name)(x)
+        x = SeparableConv2dBnReLU(filters, use_batchnorm, name=conv_block_name)(x)
 
         return x
 
     return layer
-
 
 # ---------------------------------------------------------------------
 #  Unet Decoder
