@@ -1,7 +1,6 @@
 from keras_applications import get_submodules_from_kwargs
 
-
-def Conv2dBn(
+def SeparableConv2dBn(
         filters,
         kernel_size,
         strides=(1, 1),
@@ -19,7 +18,7 @@ def Conv2dBn(
         use_batchnorm=False,
         **kwargs
 ):
-    """Extension of Conv2D layer with batchnorm"""
+    """Extension of SeparableConv2D layer with batchnorm"""
 
     conv_name, act_name, bn_name = None, None, None
     block_name = kwargs.pop('name', None)
@@ -39,7 +38,7 @@ def Conv2dBn(
 
     def wrapper(input_tensor):
 
-        x = layers.Conv2D(
+        x = layers.SeparableConv2D(
             filters=filters,
             kernel_size=kernel_size,
             strides=strides,
@@ -47,13 +46,16 @@ def Conv2dBn(
             data_format=data_format,
             dilation_rate=dilation_rate,
             activation=None,
-            use_bias=not (use_batchnorm),
-            kernel_initializer=kernel_initializer,
+            use_bias=not use_batchnorm,
+            depthwise_initializer=kernel_initializer,
+            pointwise_initializer=kernel_initializer,
             bias_initializer=bias_initializer,
-            kernel_regularizer=kernel_regularizer,
+            depthwise_regularizer=kernel_regularizer,
+            pointwise_regularizer=kernel_regularizer,
             bias_regularizer=bias_regularizer,
             activity_regularizer=activity_regularizer,
-            kernel_constraint=kernel_constraint,
+            depthwise_constraint=kernel_constraint,
+            pointwise_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
             name=conv_name,
         )(input_tensor)
